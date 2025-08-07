@@ -1,0 +1,90 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Grammar
+
+Rule 0     S' -> statement
+Rule 1     statement -> conversion statement
+Rule 2     statement -> conversion
+Rule 3     conversion -> NUMBER DIVISA DIVISA DOLAR
+
+Terminals, with rules where they appear
+
+DIVISA               : 3 3
+DOLAR                : 3
+NUMBER               : 3
+error                : 
+
+Nonterminals, with rules where they appear
+
+conversion           : 1 2
+statement            : 1 0
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . statement
+    (1) statement -> . conversion statement
+    (2) statement -> . conversion
+    (3) conversion -> . NUMBER DIVISA DIVISA DOLAR
+
+    NUMBER          shift and go to state 3
+
+    statement                      shift and go to state 1
+    conversion                     shift and go to state 2
+
+state 1
+
+    (0) S' -> statement .
+
+
+
+state 2
+
+    (1) statement -> conversion . statement
+    (2) statement -> conversion .
+    (1) statement -> . conversion statement
+    (2) statement -> . conversion
+    (3) conversion -> . NUMBER DIVISA DIVISA DOLAR
+
+    $end            reduce using rule 2 (statement -> conversion .)
+    NUMBER          shift and go to state 3
+
+    conversion                     shift and go to state 2
+    statement                      shift and go to state 4
+
+state 3
+
+    (3) conversion -> NUMBER . DIVISA DIVISA DOLAR
+
+    DIVISA          shift and go to state 5
+
+
+state 4
+
+    (1) statement -> conversion statement .
+
+    $end            reduce using rule 1 (statement -> conversion statement .)
+
+
+state 5
+
+    (3) conversion -> NUMBER DIVISA . DIVISA DOLAR
+
+    DIVISA          shift and go to state 6
+
+
+state 6
+
+    (3) conversion -> NUMBER DIVISA DIVISA . DOLAR
+
+    DOLAR           shift and go to state 7
+
+
+state 7
+
+    (3) conversion -> NUMBER DIVISA DIVISA DOLAR .
+
+    NUMBER          reduce using rule 3 (conversion -> NUMBER DIVISA DIVISA DOLAR .)
+    $end            reduce using rule 3 (conversion -> NUMBER DIVISA DIVISA DOLAR .)
+

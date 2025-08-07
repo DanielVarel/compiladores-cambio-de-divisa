@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor de Divisas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
+        <h1 class="text-2xl font-bold text-center mb-6">Conversor de Divisas</h1>
+        <div class="space-y-4">
+            <div>
+                <label for="input_cadena" class="block text-sm font-medium text-gray-700">Introduce la cadena:</label>
+                <input type="text" id="input_cadena" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" placeholder="Ej. 100 dolar lempira$">
+            </div>
+            <button id="convertBtn" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Analizar
+            </button>
+        </div>
+        <div id="results" class="mt-6 hidden">
+            <h2 class="text-xl font-semibold mb-4">Resultados del Análisis</h2>
+            <div id="all_results"></div>
+            <div id="errores_container">
+                <h3 class="text-lg font-semibold text-red-600 mb-2">Errores Sintácticos</h3>
+                <ul id="errores_sintacticos" class="list-disc list-inside text-red-600"></ul>
+            </div>
+            <div class="mt-4">
+                <h3 class="text-lg font-semibold mb-2">Análisis Léxico</h3>
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Línea</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lexico_body" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('convertBtn').addEventListener('click', async () => {
+            const inputCadena = document.getElementById('input_cadena').value;
+
+            if (!inputCadena) {
+                alert('Por favor, ingresa una cadena para analizar.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/parse', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ input_cadena: inputCadena }),
+                });
+
+                const result = await response.json();
+                
+                document.getElementById('results').classList.remove('hidden');
+
+                // Procesar los resultados de las conversiones
+                const allResultsContainer = document.getElementById('all_results');
+                allResultsContainer.innerHTML = '';
+                if (Array.isArray(result.Resultado)) {
+                    result.Resultado.forEach(res => {
+                        allResultsContainer.innerHTML += `<div class="text-lg font-medium mb-2">${res}</div>`;
+                    });
+                } else {
+                     allResultsContainer.innerHTML = `<div class="text-lg font-medium mb-4">${result.Resultado}</div>`;
+                }
+
+
+                const erroresSintacticos = document.getElementById('errores_sintacticos');
+                erroresSintacticos.innerHTML = '';
+                if (result.Errores_sintacticos.length > 0) {
+                    result.Errores_sintacticos.forEach(error => {
+                        erroresSintacticos.innerHTML += `<li>${error.tipo}: ${error.valor}</li>`;
+                    });
+                    document.getElementById('errores_container').classList.remove('hidden');
+                } else {
+                    document.getElementById('errores_container').classList.add('hidden');
+                }
+
+                const lexicoBody = document.getElementById('lexico_body');
+                lexicoBody.innerHTML = '';
+                result.lexico.forEach(token => {
+                    lexicoBody.innerHTML += `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">${token.linea}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${token.tipo}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${token.valor}</td>
+                        </tr>
+                    `;
+                });
+            } catch (error) {
+                document.getElementById('salida').textContent = 'Error: No se pudo conectar con el servidor.';
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
