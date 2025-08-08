@@ -88,9 +88,30 @@ parser_errors = []
 # --- FLASK SERVER SIDE ---
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html')
+    result = None
+    historical_data = None
+
+    if request.method == 'POST':
+        cadena = request.form.get('input_text', '').lower()
+
+        # Análisis léxico
+        lexer.input(cadena)
+        while lexer.token(): pass  # consumir tokens solo para mantener análisis léxico
+
+        # Reiniciar para sintaxis
+        lexer.input(cadena)
+        result = parser.parse(lexer=lexer)
+
+        # Simular datos históricos para la gráfica
+        historical_data = {
+            "dates": ["2025-08-01", "2025-08-02", "2025-08-03", "2025-08-04", "2025-08-05", "2025-08-06", "2025-08-07"],
+            "rates": [24.63, 24.65, 24.66, 24.64, 24.62, 24.60, 24.61]
+        }
+
+    return render_template('index.html', result=result, historical_data=historical_data)
+
 
 @app.route('/parse', methods=['POST'])
 def parse():
@@ -120,11 +141,18 @@ def parse():
     # Análisis Sintáctico
     resultado = parser.parse(lexer=lexer)
     
+    # --- Aquí agregamos los datos históricos para el gráfico ---
+    historical = {
+        "dates": ["2025-08-01", "2025-08-02", "2025-08-03", "2025-08-04", "2025-08-05", "2025-08-06", "2025-08-07"],
+        "rates": [24.63, 24.65, 24.66, 24.64, 24.62, 24.60, 24.61]
+    }
+    
     response = {
         "Resultado": resultado if resultado else "Error: Sintaxis inválida",
         "Errores_lexicos": lexer_errors,
         "Errores_sintacticos": parser_errors,
-        "lexico": lexico_out
+        "lexico": lexico_out,
+        "historical": historical  # <-- datos del gráfico
     }
     
     return jsonify(response)
