@@ -41,7 +41,7 @@
             </div>
 
             <div class="mt-6">
-                <h3 class="text-lg font-semibold mb-2">Histórico de tasa de cambio</h3>
+                <h3 class="text-lg font-semibold mb-2" id="chart_title">Histórico de tasa de cambio</h3>
                 <canvas id="exchangeChart" width="400" height="200"></canvas>
             </div>
         </div>
@@ -104,10 +104,17 @@
                     `;
                 });
 
+                // Actualizar título dinámico del gráfico
+                const chartTitle = document.getElementById('chart_title');
+                if (result.historical?.title) {
+                    chartTitle.textContent = `Histórico de tasa de cambio: ${result.historical.title}`;
+                } else {
+                    chartTitle.textContent = 'Histórico de tasa de cambio';
+                }
+
                 // Dibujar gráfico con Chart.js
                 const dates = result.historical.dates;
                 const rates = result.historical.rates;
-
                 const ctx = document.getElementById('exchangeChart').getContext('2d');
 
                 if (chartInstance) {
